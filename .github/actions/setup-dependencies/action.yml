@@ -119,31 +119,34 @@ runs:
       with:
         python-version: '3.14'
 
-    # py7zr intermittently rejects Qt archives on Windows ("Specified path is bad"),
-    # so extract them with the 7-Zip preinstalled on the Windows runners when available
-    - name: Use 7-Zip to extract Qt
-      if: ${{ runner.os == 'Windows' }}
-      shell: bash
-      run: |
-        if ! command -v 7z >/dev/null 2>&1 && [ -f "/c/Program Files/7-Zip/7z.exe" ]; then
-          echo "C:\\Program Files\\7-Zip" >> "$GITHUB_PATH"
-          export PATH="/c/Program Files/7-Zip:$PATH"
-        fi
-        if command -v 7z >/dev/null 2>&1; then
-          echo "AQT_EXTRA_ARGS=--external 7z" >> "$GITHUB_ENV"
-        else
-          echo "::warning::7-Zip not found, falling back to py7zr to extract Qt"
-        fi
-
+    # The Qt install intermittently fails on Windows (py7zr "Bad7zFile: Specified path is bad"),
+    # so retry it once from a clean state before failing the job
     - name: Install Qt
+      id: install-qt
+      continue-on-error: true
       uses: jurplel/install-qt-action@v4
       with:
         version: ${{ inputs.qt-version }}
         setup-python: false
         aqtsource: git+https://github.com/miurahr/aqtinstall.git@16db45a70b5905ad596941b223469bc86a56901e
-        # fallback extractor when 7-Zip is not used
-        py7zrversion: '==1.0.0'
-        extra: ${{ env.AQT_EXTRA_ARGS }}
+        modules: qtimageformats qtnetworkauth
+        cache: ${{ inputs.build-type == 'Debug' }}
+        arch: ${{ inputs.msystem != '' && 'win64_llvm_mingw' || '' }}
+
+    - name: Clean up failed Qt install
+      if: ${{ steps.install-qt.outcome == 'failure' }}
+      shell: bash
+      run: |
+        echo "::warning::Qt install failed, retrying once"
+        rm -rf "${{ runner.workspace }}/Qt"
+
+    - name: Install Qt (retry)
+      if: ${{ steps.install-qt.outcome == 'failure' }}
+      uses: jurplel/install-qt-action@v4
+      with:
+        version: ${{ inputs.qt-version }}
+        setup-python: false
+        aqtsource: git+https://github.com/miurahr/aqtinstall.git@16db45a70b5905ad596941b223469bc86a56901e
         modules: qtimageformats qtnetworkauth
         cache: ${{ inputs.build-type == 'Debug' }}
         arch: ${{ inputs.msystem != '' && 'win64_llvm_mingw' || '' }}
