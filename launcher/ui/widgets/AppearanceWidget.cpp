@@ -57,13 +57,17 @@ AppearanceWidget::AppearanceWidget(bool themesOnly, QWidget* parent)
 
     m_defaultFormat = QTextCharFormat(m_ui->consolePreview->currentCharFormat());
 
+    // Fork: the cat is removed
+    m_ui->catPackLabel->hide();
+    m_ui->catPackComboBox->hide();
+    m_ui->catPackFolder->hide();
+    m_ui->enableCatCheckBox->hide();
+    m_ui->catSettingsBox->hide();
+    m_ui->catPreview->hide();
+
     if (themesOnly) {
-        m_ui->catPackLabel->hide();
-        m_ui->catPackComboBox->hide();
-        m_ui->catPackFolder->hide();
         m_ui->settingsBox->hide();
         m_ui->consolePreview->hide();
-        m_ui->catPreview->hide();
         loadThemeSettings();
     } else {
         loadSettings();
@@ -101,11 +105,8 @@ void AppearanceWidget::applySettings()
     QString consoleFontFamily = m_ui->consoleFont->currentFont().family();
     settings->set("ConsoleFont", consoleFontFamily);
     settings->set("ConsoleFontSize", m_ui->fontSizeBox->value());
-    const bool catEnabled = m_ui->enableCatCheckBox->isChecked();
-    settings->set("EnableCat", catEnabled);
-    if (!catEnabled) {
-        settings->set("TheCat", false);
-    }
+    settings->set("EnableCat", false);
+    settings->set("TheCat", false);
     settings->set("CatOpacity", m_ui->catOpacitySlider->value());
     auto catFit = m_ui->catFitComboBox->currentIndex();
     settings->set("CatFit", catFit == 0 ? "fit" : catFit == 1 ? "fill" : "strech");

@@ -35,6 +35,7 @@
 
 #include "AboutDialog.h"
 #include <QIcon>
+#include <QLocale>
 #include "Application.h"
 #include "BuildConfig.h"
 #include "Markdown.h"
@@ -118,6 +119,22 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent), ui(new Ui::AboutDia
     ui->urlLabel->setText(urlText.arg(BuildConfig.LAUNCHER_GIT));
 
     ui->copyLabel->setText(BuildConfig.LAUNCHER_COPYRIGHT);
+
+    // Fork: mention that this is a WinterCup fork of Prism Launcher (not in the upstream translations)
+    const QString prismLink = QStringLiteral("<a href=\"https://prismlauncher.org\">Prism Launcher</a>");
+    const QString forkNote = QLocale().language() == QLocale::French
+                                 ? QStringLiteral("%1 est un fork de %2, spécialement conçu pour la WinterCup.")
+                                 : QStringLiteral("%1 is a fork of %2, specially designed for the WinterCup.");
+    const QString forkHtml = QStringLiteral("<p><b>%1</b></p>").arg(forkNote.arg(launcherName, prismLink));
+    QString aboutText = ui->aboutLabel->text();
+    if (aboutText.contains(QStringLiteral("</body>"))) {
+        aboutText.replace(QStringLiteral("</body>"), forkHtml + QStringLiteral("</body>"));
+    } else {
+        aboutText = QStringLiteral("<p>%1</p>").arg(aboutText.toHtmlEscaped()) + forkHtml;
+    }
+    ui->aboutLabel->setTextFormat(Qt::RichText);
+    ui->aboutLabel->setText(aboutText);
+    ui->aboutLabel->setOpenExternalLinks(true);
 
     connect(ui->closeButton, &QPushButton::clicked, this, &AboutDialog::close);
 

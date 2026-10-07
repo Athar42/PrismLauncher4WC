@@ -813,7 +813,7 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
         m_settings->registerSetting({ "PostExitCommand", "PostExitCmd" }, "");
 
         // The cat
-        m_settings->registerSetting("EnableCat", true);
+        m_settings->registerSetting("EnableCat", false);  // Fork: the cat is removed
         m_settings->registerSetting("TheCat", false);
         m_settings->registerSetting("CatOpacity", 100);
         m_settings->registerSetting("CatFit", "fit");
@@ -1281,14 +1281,8 @@ bool Application::createSetupWizard()
             settings()->set("IconTheme", QString("pe_colored"));
         }
         if (!validWidgets) {
-#if defined(Q_OS_WIN32) || defined(Q_OS_MACOS)
-            const QString style =
-                QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark ? QStringLiteral("dark") : QStringLiteral("bright");
-#else
-            const QString style = QStringLiteral("system");
-#endif
-
-            settings()->set("ApplicationTheme", style);
+            // Fork: the winter dark theme is the default theme
+            settings()->set("ApplicationTheme", QStringLiteral("winter_dark"));
         }
 
         m_themeManager->applyCurrentlySelectedTheme(true);

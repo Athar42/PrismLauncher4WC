@@ -229,6 +229,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
         }
 
         ui->actionViewJavaFolder->setEnabled(BuildConfig.JAVA_DOWNLOADER_ENABLED);
+
+        // Fork: the cat is removed
+        ui->actionViewCatPackFolder->setVisible(false);
     }
 
     {  // logs viewing
@@ -237,7 +240,13 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     // add the toolbar toggles to the view menu
     ui->viewMenu->addAction(ui->instanceToolBar->toggleViewAction());
-    ui->viewMenu->addAction(ui->newsToolBar->toggleViewAction());
+    if (!BuildConfig.NEWS_RSS_URL.isEmpty()) {
+        ui->viewMenu->addAction(ui->newsToolBar->toggleViewAction());
+    } else {
+        // Fork: no news feed, hide the news toolbar entirely
+        ui->newsToolBar->toggleViewAction()->setVisible(false);
+        ui->newsToolBar->hide();
+    }
 
     updateThemeMenu();
     updateMainToolBar();
@@ -395,7 +404,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     // auto accounts = APPLICATION->accounts();
 
     // load the news
-    {
+    if (!BuildConfig.NEWS_RSS_URL.isEmpty()) {
         m_newsChecker->reloadNews();
         updateNewsLabel();
     }
@@ -844,17 +853,11 @@ void MainWindow::setCatBackground(bool enabled)
 
 void MainWindow::updateCatState()
 {
-    SettingsObject* settings = APPLICATION->settings();
-    const bool catEnabled = settings->get("EnableCat").toBool();
-    bool catVisible = settings->get("TheCat").toBool();
-    if (!catEnabled && catVisible) {
-        settings->set("TheCat", false);
-        catVisible = false;
-    }
-
-    ui->actionCAT->setVisible(catEnabled);
-    ui->actionCAT->setChecked(catVisible);
-    setCatBackground(catVisible);
+    // Fork: the cat is removed
+    APPLICATION->settings()->set("TheCat", false);
+    ui->actionCAT->setVisible(false);
+    ui->actionCAT->setChecked(false);
+    setCatBackground(false);
 }
 
 void MainWindow::runModalTask(Task* task)

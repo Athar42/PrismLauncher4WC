@@ -134,13 +134,8 @@ QString Config::versionString() const
 
 QString Config::printableVersionString() const
 {
-    QString vstr = versionString();
-
-    // If the build is not a main release, append the channel
-    if (VERSION_CHANNEL != "stable" && GIT_TAG != vstr) {
-        vstr += "-" + VERSION_CHANNEL;
-    }
-    return vstr;
+    // Fork: always show the plain version, without the git branch/commit suffix
+    return versionString();
 }
 
 QString Config::compilerID() const
