@@ -61,6 +61,7 @@
 #include <QInputDialog>
 #include <QKeyEvent>
 #include <QLabel>
+#include <QLocale>
 #include <QMainWindow>
 #include <QMenu>
 #include <QMenuBar>
@@ -146,6 +147,17 @@ QString profileInUseFilter(const QString& profile, bool used)
     }
 }
 }  // namespace
+
+// Fork: the cat toggle now controls the snow animation (not in the upstream translations)
+static void setupSnowAction(QAction* action)
+{
+    const bool french = QLocale().language() == QLocale::French;
+    action->setIcon(APPLICATION->logo());
+    action->setText(french ? QStringLiteral("Animation de neige") : QStringLiteral("Snow animation"));
+    action->setToolTip(french ? QStringLiteral("Activer/désactiver l'animation de neige en fond")
+                              : QStringLiteral("Enable/disable the falling snow background animation"));
+    action->setPriority(QAction::NormalPriority);
+}
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
@@ -335,8 +347,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
     }
     // The cat background
     {
-        // set the cat action priority here so you can still see the action in qt designer
-        ui->actionCAT->setPriority(QAction::LowPriority);
+        setupSnowAction(ui->actionCAT);
         updateCatState();
         connect(ui->actionCAT, &QAction::toggled, this, &MainWindow::onCatToggled);
         connect(APPLICATION, &Application::currentCatChanged, this, &MainWindow::onCatChanged);
@@ -454,6 +465,7 @@ void MainWindow::retranslateUi()
     }
 
     ui->retranslateUi(this);
+    setupSnowAction(ui->actionCAT);
 
     MinecraftAccountPtr defaultAccount = APPLICATION->accounts()->defaultAccount();
     if (defaultAccount) {
@@ -841,8 +853,9 @@ QString intListToString(const QList<int>& list)
 
 void MainWindow::onCatToggled(bool state)
 {
-    setCatBackground(state);
-    APPLICATION->settings()->set("TheCat", state);
+    // Fork: the cat toggle now controls the snow animation
+    APPLICATION->settings()->set("SnowAnimation", state);
+    view->setPaintSnow(state);
 }
 
 void MainWindow::setCatBackground(bool enabled)
@@ -853,11 +866,14 @@ void MainWindow::setCatBackground(bool enabled)
 
 void MainWindow::updateCatState()
 {
-    // Fork: the cat is removed
+    // Fork: the cat is removed, its toggle now controls the snow animation
     APPLICATION->settings()->set("TheCat", false);
-    ui->actionCAT->setVisible(false);
-    ui->actionCAT->setChecked(false);
     setCatBackground(false);
+
+    const bool snow = APPLICATION->settings()->get("SnowAnimation").toBool();
+    ui->actionCAT->setVisible(true);
+    ui->actionCAT->setChecked(snow);
+    view->setPaintSnow(snow);
 }
 
 void MainWindow::runModalTask(Task* task)

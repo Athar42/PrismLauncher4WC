@@ -440,6 +440,16 @@ void InstanceView::mouseDoubleClickEvent(QMouseEvent* event)
     }
 }
 
+void InstanceView::setPaintSnow(bool visible)
+{
+    if (visible == (m_snow != nullptr)) {
+        return;
+    }
+    delete m_snow;
+    m_snow = visible ? new SnowPainter(viewport(), this) : nullptr;
+    viewport()->update();
+}
+
 void InstanceView::setPaintCat(bool visible)
 {
     if (m_cat) {
@@ -461,6 +471,9 @@ void InstanceView::paintEvent([[maybe_unused]] QPaintEvent* event)
 
     if (m_cat) {
         m_cat->paint(&painter, this->viewport()->rect());
+    }
+    if (m_snow) {
+        m_snow->paint(&painter);
     }
 
     QStyleOptionViewItem option;

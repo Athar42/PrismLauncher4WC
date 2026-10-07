@@ -42,6 +42,7 @@
 #include <functional>
 #include "VisualGroup.h"
 #include "ui/themes/CatPainter.h"
+#include "ui/themes/SnowPainter.h"
 
 struct InstanceViewRoles {
     enum { GroupRole = Qt::UserRole };
@@ -79,6 +80,7 @@ class InstanceView : public QAbstractItemView {
 
     int spacing() const { return m_spacing; };
     void setPaintCat(bool visible);
+    void setPaintSnow(bool visible);
 
    public slots:
     virtual void updateGeometries() override;
@@ -130,6 +132,7 @@ class InstanceView : public QAbstractItemView {
     int m_currentCursorColumn = -1;
     mutable QCache<int, QRect> m_geometryCache;
     CatPainter* m_cat = nullptr;
+    SnowPainter* m_snow = nullptr;
 
     // point where the currently active mouse action started in geometry coordinates
     QPoint m_pressedPosition;

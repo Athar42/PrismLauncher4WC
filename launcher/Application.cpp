@@ -814,6 +814,7 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
 
         // The cat
         m_settings->registerSetting("EnableCat", false);  // Fork: the cat is removed
+        m_settings->registerSetting("SnowAnimation", true);  // Fork: falling snow in the instance view
         m_settings->registerSetting("TheCat", false);
         m_settings->registerSetting("CatOpacity", 100);
         m_settings->registerSetting("CatFit", "fit");

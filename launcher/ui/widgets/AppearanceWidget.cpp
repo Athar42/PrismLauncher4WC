@@ -39,12 +39,22 @@
 
 #include <DesktopServices.h>
 #include <QGraphicsOpacityEffect>
+#include <QLocale>
 #include "BuildConfig.h"
 #include "ui/themes/ITheme.h"
 #include "ui/themes/ThemeManager.h"
 
 #include <Application.h>
 #include "settings/SettingsObject.h"
+
+namespace {
+// Fork: label of the snow animation checkbox (not in the upstream translations)
+QString snowCheckBoxText()
+{
+    return QLocale().language() == QLocale::French ? QStringLiteral("Animation de neige en fond")
+                                                   : QStringLiteral("Falling snow background animation");
+}
+}  // namespace
 
 AppearanceWidget::AppearanceWidget(bool themesOnly, QWidget* parent)
     : QWidget(parent), m_ui(new Ui::AppearanceWidget), m_themesOnly(themesOnly)
@@ -57,13 +67,13 @@ AppearanceWidget::AppearanceWidget(bool themesOnly, QWidget* parent)
 
     m_defaultFormat = QTextCharFormat(m_ui->consolePreview->currentCharFormat());
 
-    // Fork: the cat is removed
+    // Fork: the cat is removed, its checkbox now controls the snow animation (not in the upstream translations)
     m_ui->catPackLabel->hide();
     m_ui->catPackComboBox->hide();
     m_ui->catPackFolder->hide();
-    m_ui->enableCatCheckBox->hide();
     m_ui->catSettingsBox->hide();
     m_ui->catPreview->hide();
+    m_ui->enableCatCheckBox->setText(snowCheckBoxText());
 
     if (themesOnly) {
         m_ui->settingsBox->hide();
@@ -107,6 +117,7 @@ void AppearanceWidget::applySettings()
     settings->set("ConsoleFontSize", m_ui->fontSizeBox->value());
     settings->set("EnableCat", false);
     settings->set("TheCat", false);
+    settings->set("SnowAnimation", m_ui->enableCatCheckBox->isChecked());
     settings->set("CatOpacity", m_ui->catOpacitySlider->value());
     auto catFit = m_ui->catFitComboBox->currentIndex();
     settings->set("CatFit", catFit == 0 ? "fit" : catFit == 1 ? "fill" : "strech");
@@ -126,7 +137,7 @@ void AppearanceWidget::loadSettings()
     }
     m_ui->fontSizeBox->setValue(fontSize);
 
-    m_ui->enableCatCheckBox->setChecked(settings->get("EnableCat").toBool());
+    m_ui->enableCatCheckBox->setChecked(settings->get("SnowAnimation").toBool());
     m_ui->catOpacitySlider->setValue(settings->get("CatOpacity").toInt());
 
     auto catFit = settings->get("CatFit").toString();
@@ -136,6 +147,7 @@ void AppearanceWidget::loadSettings()
 void AppearanceWidget::retranslateUi()
 {
     m_ui->retranslateUi(this);
+    m_ui->enableCatCheckBox->setText(snowCheckBoxText());
 }
 
 void AppearanceWidget::applyIconTheme(int index)
