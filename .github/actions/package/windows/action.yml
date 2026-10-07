@@ -1,5 +1,5 @@
 name: Package for Windows
-description: Create a Windows package for Winter Launcher
+description: Create a Windows package for WinterCup Launcher
 
 inputs:
   version:
@@ -157,7 +157,7 @@ runs:
         certificate-profile-name: PrismLauncher
 
         files: |
-          ${{ github.workspace }}\WinterLauncher-Setup.exe
+          ${{ github.workspace }}\WinterCupLauncher-Setup.exe
 
         # recommended in https://github.com/Azure/artifact-signing-action#timestamping-1
         timestamp-rfc3161: 'http://timestamp.acs.microsoft.com'
@@ -178,17 +178,17 @@ runs:
     - name: Upload binary zip
       uses: actions/upload-artifact@v7
       with:
-        name: WinterLauncher-${{ inputs.artifact-name }}-${{ inputs.version }}-${{ inputs.build-type }}
+        name: WinterCupLauncher-${{ inputs.artifact-name }}-${{ inputs.version }}-${{ inputs.build-type }}
         path: install/**
 
     - name: Upload portable zip
       uses: actions/upload-artifact@v7
       with:
-        name: WinterLauncher-${{ inputs.artifact-name }}-Portable-${{ inputs.version }}-${{ inputs.build-type }}
+        name: WinterCupLauncher-${{ inputs.artifact-name }}-Portable-${{ inputs.version }}-${{ inputs.build-type }}
         path: install-portable/**
 
     - name: Upload installer
       uses: actions/upload-artifact@v7
       with:
-        name: WinterLauncher-${{ inputs.artifact-name }}-Setup-${{ inputs.version }}-${{ inputs.build-type }}
-        path: WinterLauncher-Setup.exe
+        name: WinterCupLauncher-${{ inputs.artifact-name }}-Setup-${{ inputs.version }}-${{ inputs.build-type }}
+        path: WinterCupLauncher-Setup.exe

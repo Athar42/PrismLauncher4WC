@@ -8,15 +8,15 @@ if(UNIX)
     endif()
 endif()
 
-set(Launcher_CommonName "WinterLauncher")
-set(Launcher_DisplayName "Winter Launcher")
+set(Launcher_CommonName "WinterCupLauncher")
+set(Launcher_DisplayName "WinterCup Launcher")
 set(Launcher_AppID "org.prismlauncher.PrismLauncher")
 set(Launcher_Domain "prismlauncher.org")
 set(Launcher_Git "https://github.com/PrismLauncher/PrismLauncher")
 
 set(Launcher_Name "${Launcher_CommonName}" PARENT_SCOPE)
 set(Launcher_DisplayName "${Launcher_DisplayName}" PARENT_SCOPE)
-set(Launcher_ENVName "WINTERLAUNCHER" PARENT_SCOPE)
+set(Launcher_ENVName "WINTERCUPLAUNCHER" PARENT_SCOPE)
 set(Launcher_Domain "${Launcher_Domain}" PARENT_SCOPE)
 set(Launcher_Git "${Launcher_Git}" PARENT_SCOPE)
 
