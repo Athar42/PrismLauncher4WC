@@ -137,19 +137,8 @@ runs:
         NSCURL_SHA256: "AEE6C4BE3CB6455858E9C1EE4B3AFE0DB9960FA03FE99CCDEDC28390D57CCBB0"
       run: |
         New-Item -Name NSISPlugins -ItemType Directory
-        # Retry the download: it sometimes fails transiently on the runners
-        $nscurl_hash = ""
-        for ($attempt = 1; $attempt -le 3; $attempt++) {
-          try {
-            Invoke-Webrequest https://github.com/negrutiu/nsis-nscurl/releases/download/"${{ env.NSCURL_VERSION }}"/NScurl.zip -OutFile NSISPlugins\NScurl.zip
-            $nscurl_hash = Get-FileHash NSISPlugins\NScurl.zip -Algorithm Sha256 | Select-Object -ExpandProperty Hash
-          } catch {
-            echo "NSCurl download attempt $attempt failed: $_"
-          }
-          if ( $nscurl_hash -eq "${{ env.nscurl_sha256 }}") { break }
-          echo "NSCurl.zip sha256 mismatch on attempt $attempt (got '$nscurl_hash')"
-          Start-Sleep -Seconds 10
-        }
+        Invoke-Webrequest https://github.com/negrutiu/nsis-nscurl/releases/download/"${{ env.NSCURL_VERSION }}"/NScurl.zip -OutFile NSISPlugins\NScurl.zip
+        $nscurl_hash = Get-FileHash NSISPlugins\NScurl.zip -Algorithm Sha256 | Select-Object -ExpandProperty Hash
         if ( $nscurl_hash -ne "${{ env.nscurl_sha256 }}") {
           echo "::error:: NSCurl.zip sha256 mismatch"
           exit 1
