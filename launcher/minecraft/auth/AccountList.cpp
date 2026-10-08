@@ -35,6 +35,7 @@
 
 #include "AccountList.h"
 #include "AccountData.h"
+#include "BuildConfig.h"
 #include "tasks/Task.h"
 
 #include <QDir>
@@ -584,7 +585,16 @@ void AccountList::setListFilePath(QString path, bool autosave)
 
 bool AccountList::anyAccountIsValid()
 {
-    return true;
+    // Fork: the offline edition (built without a Microsoft client ID) doesn't require an owned account
+    if (BuildConfig.MSA_CLIENT_ID.isEmpty()) {
+        return true;
+    }
+    for (auto account : m_accounts) {
+        if (account->ownsMinecraft()) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void AccountList::fillQueue()

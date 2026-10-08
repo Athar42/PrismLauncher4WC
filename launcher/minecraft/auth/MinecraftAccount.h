@@ -44,6 +44,7 @@
 #include <QString>
 
 #include "AccountData.h"
+#include "BuildConfig.h"
 #include "AuthSession.h"
 #include "QObjectPtr.h"
 #include "Usable.h"
@@ -116,7 +117,11 @@ class MinecraftAccount : public QObject, public Usable {
 
     AccountType accountType() const noexcept { return data.type; }
 
-    bool ownsMinecraft() const { return true; }
+    // Fork: the offline edition (built without a Microsoft client ID) skips the ownership check
+    bool ownsMinecraft() const
+    {
+        return BuildConfig.MSA_CLIENT_ID.isEmpty() || (data.type != AccountType::Offline && data.minecraftEntitlement.ownsMinecraft);
+    }
 
     bool hasProfile() const { return data.profileId().size() != 0; }
 

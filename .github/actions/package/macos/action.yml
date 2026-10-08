@@ -13,6 +13,9 @@ inputs:
     description: Name of the uploaded artifact
     required: true
     default: macOS
+  name-prefix:
+    description: "Prefix of the uploaded artifacts and release files (fork: WinterCupLauncher or WinterCupLauncher-Offline)"
+    default: WinterCupLauncher
   apple-codesign-cert:
     description: Certificate for signing macOS builds
     required: false
@@ -137,11 +140,11 @@ runs:
     - name: Upload binary tarball
       uses: actions/upload-artifact@v7
       with:
-        name: WinterCupLauncher-${{ inputs.artifact-name }}-${{ inputs.version }}-${{ inputs.build-type }}
+        name: ${{ inputs.name-prefix }}-${{ inputs.artifact-name }}-${{ inputs.version }}-${{ inputs.build-type }}
         path: WinterCupLauncher.zip
 
     - name: Upload disk image
       uses: actions/upload-artifact@v7
       with:
-        name: WinterCupLauncher-${{ inputs.artifact-name }}-${{ inputs.version }}-${{ inputs.build-type }}.dmg
+        name: ${{ inputs.name-prefix }}-${{ inputs.artifact-name }}-${{ inputs.version }}-${{ inputs.build-type }}.dmg
         path: WinterCupLauncher.dmg

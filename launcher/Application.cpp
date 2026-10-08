@@ -1929,6 +1929,11 @@ QString Application::getJarPath(const QString& jarFile)
 
 QString Application::getMSAClientID()
 {
+    // Fork: the offline edition has no Microsoft login, the client ID can't be overridden
+    if (BuildConfig.MSA_CLIENT_ID.isEmpty()) {
+        return {};
+    }
+
     QString clientIDOverride = m_settings->get("MSAClientIDOverride").toString();
     if (!clientIDOverride.isEmpty()) {
         return clientIDOverride;

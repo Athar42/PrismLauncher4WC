@@ -1,7 +1,7 @@
 name: Build
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.edition || 'online' }}
   cancel-in-progress: true
 
 on:
@@ -17,18 +17,30 @@ on:
       environment:
         description: Deployment environment to run under
         type: string
+      # Fork: "offline" builds without a Microsoft client ID (offline accounts only)
+      edition:
+        description: Launcher edition (online or offline)
+        type: string
+        default: online
   workflow_dispatch:
     inputs:
       build-type:
         description: Type of build (Debug or Release)
         type: string
         default: Debug
+      edition:
+        description: Launcher edition (online or offline)
+        type: choice
+        options:
+          - online
+          - offline
+        default: online
 
 permissions: {}
 
 jobs:
   build:
-    name: Build (${{ matrix.artifact-name }})
+    name: Build (${{ matrix.artifact-name }}${{ inputs.edition == 'offline' && ' Offline' || '' }})
 
     environment: ${{ inputs.environment || '' }}
 
@@ -90,6 +102,9 @@ jobs:
       BUILD_PLATFORM: official
       BUILD_TYPE: ${{ inputs.build-type || 'Debug' }}
       CMAKE_PRESET: ${{ matrix.cmake-preset }}
+      # Fork: the offline edition is built without a Microsoft client ID and its files are prefixed differently
+      EDITION_CMAKE_ARGS: ${{ inputs.edition == 'offline' && '-D Launcher_MSA_CLIENT_ID=' || '' }}
+      NAME_PREFIX: ${{ inputs.edition == 'offline' && 'WinterCupLauncher-Offline' || 'WinterCupLauncher' }}
 
       MACOSX_DEPLOYMENT_TARGET: ${{ matrix.macosx-deployment-target }}
 
@@ -119,7 +134,7 @@ jobs:
 
       - name: Configure project
         run: |
-          cmake --preset "$CMAKE_PRESET" -D VCPKG_HOST_TRIPLET="$VCPKG_TRIPLET" -D VCPKG_TARGET_TRIPLET="$VCPKG_TRIPLET"
+          cmake --preset "$CMAKE_PRESET" -D VCPKG_HOST_TRIPLET="$VCPKG_TRIPLET" -D VCPKG_TARGET_TRIPLET="$VCPKG_TRIPLET" $EDITION_CMAKE_ARGS
 
       - name: Run build
         run: |
@@ -148,6 +163,7 @@ jobs:
           version: ${{ steps.short-version.outputs.version }}
           build-type: ${{ steps.setup-dependencies.outputs.build-type }}
           artifact-name: ${{ matrix.artifact-name }}
+          name-prefix: ${{ env.NAME_PREFIX }}
           qt-version: ${{ steps.setup-dependencies.outputs.qt-version }}
 
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
@@ -160,6 +176,7 @@ jobs:
           version: ${{ steps.short-version.outputs.version }}
           build-type: ${{ steps.setup-dependencies.outputs.build-type }}
           artifact-name: ${{ matrix.artifact-name }}
+          name-prefix: ${{ env.NAME_PREFIX }}
 
           apple-codesign-cert: ${{ secrets.APPLE_CODESIGN_CERT }}
           apple-codesign-password: ${{ secrets.APPLE_CODESIGN_PASSWORD }}
@@ -178,6 +195,7 @@ jobs:
           version: ${{ steps.short-version.outputs.version }}
           build-type: ${{ steps.setup-dependencies.outputs.build-type }}
           artifact-name: ${{ matrix.artifact-name }}
+          name-prefix: ${{ env.NAME_PREFIX }}
           msystem: ${{ matrix.msystem }}
 
           azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}

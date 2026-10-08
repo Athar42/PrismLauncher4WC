@@ -13,6 +13,9 @@ inputs:
     description: Name of the uploaded artifact
     required: true
     default: Linux
+  name-prefix:
+    description: "Prefix of the uploaded artifacts and release files (fork: WinterCupLauncher or WinterCupLauncher-Offline)"
+    default: WinterCupLauncher
   qt-version:
     description: Version of Qt to use
     required: true
@@ -101,13 +104,13 @@ runs:
         ls -la "$INSTALL_APPIMAGE_DIR"
 
         if [[ "${{ github.ref_type }}" == "tag" ]]; then
-          APPIMAGE_DEST="WinterCupLauncher-Linux-$APPIMAGE_ARCH.AppImage"
+          APPIMAGE_DEST="${{ inputs.name-prefix }}-Linux-$APPIMAGE_ARCH.AppImage"
         else
-          APPIMAGE_DEST="WinterCupLauncher-Linux-$VERSION-${{ inputs.build-type }}-$APPIMAGE_ARCH.AppImage"
+          APPIMAGE_DEST="${{ inputs.name-prefix }}-Linux-$VERSION-${{ inputs.build-type }}-$APPIMAGE_ARCH.AppImage"
         fi
 
         mkappimage \
-          --updateinformation "gh-releases-zsync|${{ github.repository_owner }}|${{ github.event.repository.name }}|latest|WinterCupLauncher-Linux-$APPIMAGE_ARCH.AppImage.zsync" \
+          --updateinformation "gh-releases-zsync|${{ github.repository_owner }}|${{ github.event.repository.name }}|latest|${{ inputs.name-prefix }}-Linux-$APPIMAGE_ARCH.AppImage.zsync" \
           "$INSTALL_APPIMAGE_DIR" \
           "$APPIMAGE_DEST"
 
@@ -137,17 +140,17 @@ runs:
     - name: Upload binary tarball
       uses: actions/upload-artifact@v7
       with:
-        name: WinterCupLauncher-${{ inputs.artifact-name }}-Qt6-Portable-${{ inputs.version }}-${{ inputs.build-type }}
+        name: ${{ inputs.name-prefix }}-${{ inputs.artifact-name }}-Qt6-Portable-${{ inputs.version }}-${{ inputs.build-type }}
         path: WinterCupLauncher-portable.tar.gz
 
     - name: Upload AppImage
       uses: actions/upload-artifact@v7
       with:
-        name: WinterCupLauncher-${{ runner.os }}-${{ inputs.version }}-${{ inputs.build-type }}-${{ env.APPIMAGE_ARCH }}.AppImage
-        path: WinterCupLauncher-${{ runner.os }}-*${{ env.APPIMAGE_ARCH }}.AppImage
+        name: ${{ inputs.name-prefix }}-${{ runner.os }}-${{ inputs.version }}-${{ inputs.build-type }}-${{ env.APPIMAGE_ARCH }}.AppImage
+        path: ${{ inputs.name-prefix }}-${{ runner.os }}-*${{ env.APPIMAGE_ARCH }}.AppImage
 
     - name: Upload AppImage Zsync
       uses: actions/upload-artifact@v7
       with:
-        name: WinterCupLauncher-${{ runner.os }}-${{ inputs.version }}-${{ inputs.build-type }}-${{ env.APPIMAGE_ARCH }}.AppImage.zsync
-        path: WinterCupLauncher-${{ runner.os }}-*${{ env.APPIMAGE_ARCH }}.AppImage.zsync
+        name: ${{ inputs.name-prefix }}-${{ runner.os }}-${{ inputs.version }}-${{ inputs.build-type }}-${{ env.APPIMAGE_ARCH }}.AppImage.zsync
+        path: ${{ inputs.name-prefix }}-${{ runner.os }}-*${{ env.APPIMAGE_ARCH }}.AppImage.zsync

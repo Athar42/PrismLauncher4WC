@@ -24,8 +24,24 @@ jobs:
       environment: Release
     secrets: inherit
 
+  # Fork: same builds without a Microsoft client ID (offline accounts only), files prefixed WinterCupLauncher-Offline
+  build_release_offline:
+    name: Build Release Offline
+    uses: ./.github/workflows/build.yml
+    permissions:
+      contents: read
+      # Required for Azure Trusted Signing
+      id-token: write
+      # Required for vcpkg binary cache
+      packages: write
+    with:
+      build-type: Release
+      environment: Release
+      edition: offline
+    secrets: inherit
+
   create_release:
-    needs: build_release
+    needs: [build_release, build_release_offline]
     permissions:
       contents: write
     runs-on: ubuntu-slim
@@ -46,41 +62,45 @@ jobs:
       - name: Package artifacts properly
         run: |
           mv ${{ github.workspace }}/WinterCupLauncher-source WinterCupLauncher-${{ env.VERSION }}
-          mv WinterCupLauncher-Linux-Qt6-Portable*/WinterCupLauncher-portable.tar.gz WinterCupLauncher-Linux-Qt6-Portable-${{ env.VERSION }}.tar.gz
-          mv WinterCupLauncher-Linux-aarch64-Qt6-Portable*/WinterCupLauncher-portable.tar.gz WinterCupLauncher-Linux-aarch64-Qt6-Portable-${{ env.VERSION }}.tar.gz
-          mv WinterCupLauncher-*.AppImage/WinterCupLauncher-*-x86_64.AppImage WinterCupLauncher-Linux-x86_64.AppImage
-          mv WinterCupLauncher-*.AppImage.zsync/WinterCupLauncher-*-x86_64.AppImage.zsync WinterCupLauncher-Linux-x86_64.AppImage.zsync
-          mv WinterCupLauncher-*.AppImage/WinterCupLauncher-*-aarch64.AppImage WinterCupLauncher-Linux-aarch64.AppImage
-          mv WinterCupLauncher-*.AppImage.zsync/WinterCupLauncher-*-aarch64.AppImage.zsync WinterCupLauncher-Linux-aarch64.AppImage.zsync
-          mv WinterCupLauncher-macOS*/WinterCupLauncher.zip WinterCupLauncher-macOS-${{ env.VERSION }}.zip
-          mv WinterCupLauncher-macOS*/WinterCupLauncher.dmg WinterCupLauncher-macOS-${{ env.VERSION }}.dmg
-
           tar --exclude='.git' -czf WinterCupLauncher-${{ env.VERSION }}.tar.gz WinterCupLauncher-${{ env.VERSION }}
 
-          for d in WinterCupLauncher-Windows-MSVC*; do
-            cd "${d}" || continue
-            LEGACY="$(echo -n ${d} | grep -o Legacy || true)"
-            ARM64="$(echo -n ${d} | grep -o arm64 || true)"
-            INST="$(echo -n ${d} | grep -o Setup || true)"
-            PORT="$(echo -n ${d} | grep -o Portable || true)"
-            NAME="WinterCupLauncher-Windows-MSVC"
-            test -z "${LEGACY}" || NAME="${NAME}-Legacy"
-            test -z "${ARM64}" || NAME="${NAME}-arm64"
-            test -z "${PORT}" || NAME="${NAME}-Portable"
-            test -z "${INST}" || mv WinterCupLauncher-*.exe ../${NAME}-Setup-${{ env.VERSION }}.exe
-            test -n "${INST}" || zip -r -9 "../${NAME}-${{ env.VERSION }}.zip" *
-            cd ..
-          done
+          # Fork: package both editions; globs always include the platform right after the prefix
+          # so that "WinterCupLauncher-*" never picks up the "WinterCupLauncher-Offline-*" artifacts
+          for P in WinterCupLauncher WinterCupLauncher-Offline; do
+            mv ${P}-Linux-Qt6-Portable*/WinterCupLauncher-portable.tar.gz ${P}-Linux-Qt6-Portable-${{ env.VERSION }}.tar.gz
+            mv ${P}-Linux-aarch64-Qt6-Portable*/WinterCupLauncher-portable.tar.gz ${P}-Linux-aarch64-Qt6-Portable-${{ env.VERSION }}.tar.gz
+            mv ${P}-Linux-*.AppImage/${P}-Linux-*-x86_64.AppImage ${P}-Linux-x86_64.AppImage
+            mv ${P}-Linux-*.AppImage.zsync/${P}-Linux-*-x86_64.AppImage.zsync ${P}-Linux-x86_64.AppImage.zsync
+            mv ${P}-Linux-*.AppImage/${P}-Linux-*-aarch64.AppImage ${P}-Linux-aarch64.AppImage
+            mv ${P}-Linux-*.AppImage.zsync/${P}-Linux-*-aarch64.AppImage.zsync ${P}-Linux-aarch64.AppImage.zsync
+            mv ${P}-macOS*/WinterCupLauncher.zip ${P}-macOS-${{ env.VERSION }}.zip
+            mv ${P}-macOS*/WinterCupLauncher.dmg ${P}-macOS-${{ env.VERSION }}.dmg
 
-          for d in WinterCupLauncher-Windows-MinGW-w64*; do
-            cd "${d}" || continue
-            INST="$(echo -n ${d} | grep -o Setup || true)"
-            PORT="$(echo -n ${d} | grep -o Portable || true)"
-            NAME="WinterCupLauncher-Windows-MinGW-w64"
-            test -z "${PORT}" || NAME="${NAME}-Portable"
-            test -z "${INST}" || mv WinterCupLauncher-*.exe ../${NAME}-Setup-${{ env.VERSION }}.exe
-            test -n "${INST}" || zip -r -9 "../${NAME}-${{ env.VERSION }}.zip" *
-            cd ..
+            for d in ${P}-Windows-MSVC*; do
+              cd "${d}" || continue
+              LEGACY="$(echo -n ${d} | grep -o Legacy || true)"
+              ARM64="$(echo -n ${d} | grep -o arm64 || true)"
+              INST="$(echo -n ${d} | grep -o Setup || true)"
+              PORT="$(echo -n ${d} | grep -o Portable || true)"
+              NAME="${P}-Windows-MSVC"
+              test -z "${LEGACY}" || NAME="${NAME}-Legacy"
+              test -z "${ARM64}" || NAME="${NAME}-arm64"
+              test -z "${PORT}" || NAME="${NAME}-Portable"
+              test -z "${INST}" || mv WinterCupLauncher-*.exe ../${NAME}-Setup-${{ env.VERSION }}.exe
+              test -n "${INST}" || zip -r -9 "../${NAME}-${{ env.VERSION }}.zip" *
+              cd ..
+            done
+
+            for d in ${P}-Windows-MinGW-w64*; do
+              cd "${d}" || continue
+              INST="$(echo -n ${d} | grep -o Setup || true)"
+              PORT="$(echo -n ${d} | grep -o Portable || true)"
+              NAME="${P}-Windows-MinGW-w64"
+              test -z "${PORT}" || NAME="${NAME}-Portable"
+              test -z "${INST}" || mv WinterCupLauncher-*.exe ../${NAME}-Setup-${{ env.VERSION }}.exe
+              test -n "${INST}" || zip -r -9 "../${NAME}-${{ env.VERSION }}.zip" *
+              cd ..
+            done
           done
 
       - name: Create release
@@ -111,4 +131,21 @@ jobs:
             WinterCupLauncher-Windows-MSVC-Setup-${{ env.VERSION }}.exe
             WinterCupLauncher-macOS-${{ env.VERSION }}.zip
             WinterCupLauncher-macOS-${{ env.VERSION }}.dmg
+            WinterCupLauncher-Offline-Linux-x86_64.AppImage
+            WinterCupLauncher-Offline-Linux-x86_64.AppImage.zsync
+            WinterCupLauncher-Offline-Linux-aarch64.AppImage
+            WinterCupLauncher-Offline-Linux-aarch64.AppImage.zsync
+            WinterCupLauncher-Offline-Linux-Qt6-Portable-${{ env.VERSION }}.tar.gz
+            WinterCupLauncher-Offline-Linux-aarch64-Qt6-Portable-${{ env.VERSION }}.tar.gz
+            WinterCupLauncher-Offline-Windows-MinGW-w64-${{ env.VERSION }}.zip
+            WinterCupLauncher-Offline-Windows-MinGW-w64-Portable-${{ env.VERSION }}.zip
+            WinterCupLauncher-Offline-Windows-MinGW-w64-Setup-${{ env.VERSION }}.exe
+            WinterCupLauncher-Offline-Windows-MSVC-arm64-${{ env.VERSION }}.zip
+            WinterCupLauncher-Offline-Windows-MSVC-arm64-Portable-${{ env.VERSION }}.zip
+            WinterCupLauncher-Offline-Windows-MSVC-arm64-Setup-${{ env.VERSION }}.exe
+            WinterCupLauncher-Offline-Windows-MSVC-${{ env.VERSION }}.zip
+            WinterCupLauncher-Offline-Windows-MSVC-Portable-${{ env.VERSION }}.zip
+            WinterCupLauncher-Offline-Windows-MSVC-Setup-${{ env.VERSION }}.exe
+            WinterCupLauncher-Offline-macOS-${{ env.VERSION }}.zip
+            WinterCupLauncher-Offline-macOS-${{ env.VERSION }}.dmg
             WinterCupLauncher-${{ env.VERSION }}.tar.gz
