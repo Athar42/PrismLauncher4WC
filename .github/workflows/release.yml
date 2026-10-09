@@ -69,10 +69,10 @@ jobs:
           for P in WinterCupLauncher WinterCupLauncher-Offline; do
             mv ${P}-Linux-Qt6-Portable*/WinterCupLauncher-portable.tar.gz ${P}-Linux-Qt6-Portable-${{ env.VERSION }}.tar.gz
             mv ${P}-Linux-aarch64-Qt6-Portable*/WinterCupLauncher-portable.tar.gz ${P}-Linux-aarch64-Qt6-Portable-${{ env.VERSION }}.tar.gz
-            mv ${P}-Linux-*.AppImage/${P}-Linux-*-x86_64.AppImage ${P}-Linux-x86_64.AppImage
-            mv ${P}-Linux-*.AppImage.zsync/${P}-Linux-*-x86_64.AppImage.zsync ${P}-Linux-x86_64.AppImage.zsync
-            mv ${P}-Linux-*.AppImage/${P}-Linux-*-aarch64.AppImage ${P}-Linux-aarch64.AppImage
-            mv ${P}-Linux-*.AppImage.zsync/${P}-Linux-*-aarch64.AppImage.zsync ${P}-Linux-aarch64.AppImage.zsync
+            mv ${P}-Linux-*.AppImage/${P}-Linux-*x86_64.AppImage ${P}-Linux-x86_64.AppImage
+            mv ${P}-Linux-*.AppImage.zsync/${P}-Linux-*x86_64.AppImage.zsync ${P}-Linux-x86_64.AppImage.zsync
+            mv ${P}-Linux-*.AppImage/${P}-Linux-*aarch64.AppImage ${P}-Linux-aarch64.AppImage
+            mv ${P}-Linux-*.AppImage.zsync/${P}-Linux-*aarch64.AppImage.zsync ${P}-Linux-aarch64.AppImage.zsync
             mv ${P}-macOS*/WinterCupLauncher.zip ${P}-macOS-${{ env.VERSION }}.zip
             mv ${P}-macOS*/WinterCupLauncher.dmg ${P}-macOS-${{ env.VERSION }}.dmg
 
